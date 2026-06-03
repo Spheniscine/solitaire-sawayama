@@ -27,6 +27,7 @@ pub fn Hero() -> Element {
                 position: Vec2 { x: 40., y: 40. },
                 width: 11.,
                 skin,
+                number_hint: 24,
             }
         }
     }

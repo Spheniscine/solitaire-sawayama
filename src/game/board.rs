@@ -1,10 +1,11 @@
 use std::ops::Range;
 
 use serde::{Deserialize, Serialize};
+use serde_tuple::{Deserialize_tuple, Serialize_tuple};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::game::NUM_SUITS;
+use crate::game::{Card, NUM_SUITS};
 
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq, EnumIter)]
@@ -58,6 +59,34 @@ impl DepotRole {
     pub fn id(&self, i: usize) -> usize {
         self.offset() + i
     }
+
+    pub fn is_face_up(&self) -> bool {
+        *self != DepotRole::Stock
+    }
 }
 
 pub const NUM_DEPOTS: usize = DepotRole::Tableau.offset() + DepotRole::Tableau.number_of();
+
+#[derive(Copy, Clone, Serialize_tuple, Deserialize_tuple, Debug, PartialEq, Eq)]
+pub struct BoardPos {
+    pub depot_index: usize,
+    pub card_index: usize,
+}
+
+impl BoardPos {
+    pub fn new(depot_index: usize, card_index: usize) -> Self {
+        Self { depot_index, card_index }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub enum AnimationAct {
+    Move(Vec<Card>, BoardPos, BoardPos),
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
+pub struct Board {
+    pub depots: Vec<Vec<Card>>,
+    pub selected: Option<BoardPos>,
+    pub animation_acts: Vec<AnimationAct>,
+}

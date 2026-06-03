@@ -14,6 +14,7 @@ glam = "0.33.0"
 phf = { version = "0.13.1", features = ["macros"] }
 rand = "0.10.1"
 serde = { version = "1.0.228", features = ["derive"] }
+serde_tuple = "1.1.3"
 strum = "0.28.0"
 strum_macros = "0.28.0"
 

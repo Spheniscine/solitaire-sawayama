@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use glam::Vec2;
 
-use crate::{components::rem, game::ColorMode};
+use crate::{components::{KATEX_MAIN, rem}, game::ColorMode};
 
 pub trait SkinTrait<C>: PartialEq + Clone {
     fn get_color(&self, card: &C, mode: ColorMode) -> String;
@@ -18,6 +18,8 @@ pub fn CardComponent<C: PartialEq + Clone + 'static, S: SkinTrait<C> + 'static>(
     width: f32,
     card: Option<C>,
     skin: S,
+
+    number_hint: Option<usize>,
     #[props(default)]
     onclick: EventHandler<MouseEvent>,
     #[props(default)]
@@ -75,9 +77,30 @@ pub fn CardComponent<C: PartialEq + Clone + 'static, S: SkinTrait<C> + 'static>(
 
                     div {
                         class: "card-pattern-1",
+                        position: "relative",
                         width: pt(10.75),
                         height: pt(11.75),
                         border_radius: pt(1.),
+                        display: "flex",
+                        justify_content: "center",
+                        align_items: "center",
+
+                        if let Some(number_hint) = number_hint {
+                            div {
+                                background: "rgba(192, 192, 192, 0.75)",
+                                // position: "absolute",
+                                // bottom: pt(0.5),
+                                border_radius: pt(1.),
+                                color: "#000",
+                                font_family: KATEX_MAIN,
+                                font_size: pt(4.),
+                                height: pt(4.5),
+                                display: "flex",
+                                align_items: "center",
+                                padding: "{pt(0.25)} {pt(0.75)}",
+                                "{number_hint}",
+                            }
+                        }
                     }
                 }
             }

@@ -4,8 +4,8 @@ pub use card::*;
 mod skin;
 pub use skin::*;
 
-mod game;
-pub use game::*;
+mod board;
+pub use board::*;
 
 // mod settings;
 // pub use settings::*;
