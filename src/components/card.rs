@@ -47,7 +47,7 @@ pub fn CardComponent<C: PartialEq + Clone + 'static, S: SkinTrait<C> + 'static>(
                 grid_template_rows: "50% 50%",
                 font_size: pt(5.),
                 text_align: "center",
-                padding: pt(0.5),
+                padding: pt(0.25),
                 color: skin.get_color(card, ColorMode::Dark),
 
                 onclick, ondoubleclick,
@@ -68,10 +68,11 @@ pub fn CardComponent<C: PartialEq + Clone + 'static, S: SkinTrait<C> + 'static>(
                     top: rem(position.y),
                     left: rem(position.x),
                     background_color: "#fff",
-                    width: pt(12.),
-                    height: pt(13.),
+                    width: pt(11.),
+                    height: pt(12.),
                     border: "{pt(0.25)} solid #000",
                     border_radius: rem(width * CARD_BORDER_RADIUS_RATIO),
+                    padding: pt(0.25),
                     display: "grid",
                     onclick, ondoubleclick,
 
@@ -137,7 +138,7 @@ pub fn CardFrame(
             color,
             border_radius: pt(1.5),
             font_size: pt(5.),
-            padding: pt(0.5),
+            padding: pt(0.25),
             onclick,
 
             if let Some(hint) = hint {

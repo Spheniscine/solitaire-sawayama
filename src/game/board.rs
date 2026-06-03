@@ -7,7 +7,6 @@ use strum_macros::EnumIter;
 
 use crate::game::{Card, NUM_SUITS};
 
-
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq, EnumIter)]
 pub enum DepotRole {
     Foundation,
@@ -84,9 +83,19 @@ pub enum AnimationAct {
     Move(Vec<Card>, BoardPos, BoardPos),
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Board {
     pub depots: Vec<Vec<Card>>,
     pub selected: Option<BoardPos>,
     pub animation_acts: Vec<AnimationAct>,
+}
+
+impl Board {
+    pub fn empty() -> Self {
+        Self {
+            depots: vec![vec![]; NUM_DEPOTS],
+            selected: None,
+            animation_acts: vec![],
+        }
+    }
 }
