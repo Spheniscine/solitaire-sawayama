@@ -17,7 +17,7 @@ pub fn BoardComponent(
 ) -> Element {
     let card_width = 11f32;
     let card_height = card_width * CARD_HEIGHT_RATIO;
-    let spacer = 1.4f32;
+    let spacer = 1.1f32;
 
     let center_x = |n: usize, i: usize| 
         50. - (card_width * n as f32 + spacer * (n-1) as f32) / 2. + (card_width + spacer) * i as f32;
@@ -66,6 +66,16 @@ pub fn BoardComponent(
                 Some(rsx!{})
         }
     };
+
+    let selected_height = if let Some(BoardPos { depot_index, card_index }) = board.selected {
+        let d = if DepotRole::role(depot_index).unwrap() == DepotRole::Tableau {
+            board.depots[depot_index].len() - card_index - 1
+        } else {
+            0
+        };
+
+        card_height + column_card_offset.y * d as f32
+    } else {0.};
 
     rsx! {
         div {
