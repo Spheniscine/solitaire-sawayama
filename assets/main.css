@@ -155,7 +155,6 @@ button {
 } */
 
 .card-pattern-1 {
-    --card-width: 11rem;
     --s: calc(var(--card-width) / 1.3);
     --c1: #f9537b;
     --c2: #fb8aa4;
