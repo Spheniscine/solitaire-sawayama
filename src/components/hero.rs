@@ -61,6 +61,8 @@ pub fn Hero() -> Element {
                 board: st.board.clone(),
                 skin: st.skin,
                 onclick: move |pos| if clean {state.write().onclick(pos);},
+                animation_key: st.animation_key,
+                is_won: st.is_won(),
             }
         }
     }

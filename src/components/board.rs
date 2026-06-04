@@ -14,6 +14,8 @@ pub fn BoardComponent(
     ondoubleclick: EventHandler<BoardPos>,
     #[props(default)]
     animation_key: AnimationKey,
+    #[props(default)]
+    is_won: bool,
 ) -> Element {
     let card_width = 11f32;
     let card_height = card_width * CARD_HEIGHT_RATIO;
@@ -176,6 +178,22 @@ pub fn BoardComponent(
             }
 
             {anims}
+
+            if is_won {
+                div {
+                    position: "absolute",
+                    top: rem(25.),
+                    left: rem(17.5),
+                    width: rem(59.),
+                    background_color: "#505",
+                    padding: rem(3.),
+                    color: "#fff",
+                    font_size: rem(7.),
+                    border_radius: rem(2.),
+                    text_align: "center",
+                    "YOU WIN!",
+                }
+            }
         }
     }
 }
