@@ -1,8 +1,9 @@
 use std::time::Duration;
 
+use enum_map::EnumMap;
 use rand::{Rng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
-use strum::IntoEnumIterator;
+use strum::{IntoEnumIterator, VariantArray};
 
 use crate::game::{Board, BoardPos, Card, DECK_SIZE, DepotRole, NUM_RANKS, RANKS, Skin, Suit};
 
@@ -186,6 +187,52 @@ impl GameState {
         }
     }
 
+    pub fn get_safe_sorts(&self) -> EnumMap<Suit, u8> {
+        let mut foundation_ranks = EnumMap::<Suit, u8>::default();
+        for i in DepotRole::Foundation.range() {
+            if let Some(card) = self.board.depots[i].last() {
+                foundation_ranks[card.suit] = card.rank;
+            }
+        }
+
+        let mut order = Suit::iter().collect::<Vec<_>>();
+        order.sort_by_key(|&s| foundation_ranks[s]);
+        for s in order {
+            let ans = Suit::iter().all(|other| {
+                other.color() == s.color() || foundation_ranks[other] >= foundation_ranks[s]
+            });
+            if ans { foundation_ranks[s] += 1; }
+        }
+        foundation_ranks
+    }
+
+    pub fn check_auto_moves(&mut self) {
+        if self.is_busy() { return; }
+        if !self.auto_play { return; }
+
+        let safe_sorts = self.get_safe_sorts();
+        let it = [
+            DepotRole::Waste,
+            DepotRole::FreeCell,
+            DepotRole::Tableau,
+        ].iter().flat_map(|r| r.range());
+
+        for depot in it {
+            if let Some(card) = self.board.depots[depot].last() {
+                if safe_sorts[card.suit] != card.rank { continue; }
+                let src = BoardPos { depot_index: depot, card_index: self.board.depots[depot].len() - 1 };
+                for dest in DepotRole::Foundation.range() {
+                    let dest = BoardPos { depot_index: dest, card_index: self.board.depots[dest].len()};
+                    if self.can_move(src, dest) {
+                        self.board.do_move(src, dest);
+                        self.history.push(ActionRecord { pos1: src, pos2: dest, auto: true });
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     pub fn advance_animations(&mut self, key: AnimationKey) {
         if key != self.animation_key { return; }
         self.animation_key = self.animation_key.wrapping_add(1);
@@ -198,7 +245,7 @@ impl GameState {
                 self.already_won = true;
             }
         } else {
-            // self.check_auto_moves();
+            self.check_auto_moves();
         }
 
         // if !self.is_busy() { LocalStorage.save_game_state(&self); }
