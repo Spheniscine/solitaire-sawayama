@@ -3,7 +3,7 @@ use std::time::Duration;
 use enum_map::EnumMap;
 use rand::{Rng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
-use strum::{IntoEnumIterator, VariantArray};
+use strum::{EnumCount, IntoEnumIterator};
 
 use crate::{components::LocalStorage, game::{Board, BoardPos, Card, DECK_SIZE, DepotRole, NUM_RANKS, RANKS, Skin, Suit}};
 
@@ -190,7 +190,7 @@ impl GameState {
                 return;
             }
 
-            let dest = BoardPos { depot_index: pos.depot_index, card_index: pos.card_index.wrapping_add(1) };
+            let dest = BoardPos::new(pos.depot_index, pos.card_index.wrapping_add(1));
             if !self.can_move(src, dest) { return; }
             self.board.do_move(src, dest);
             self.history.push(ActionRecord { pos1: src, pos2: dest, auto: false });
@@ -206,7 +206,7 @@ impl GameState {
         if !self.can_select(pos) { return; } // needed, or illegal stacks can still be moved this way!
         let it = DepotRole::Foundation.range().chain(DepotRole::FreeCell.range());
         for dest in it {
-            let dest = BoardPos { depot_index: dest, card_index: self.board.depots[dest].len()};
+            let dest = BoardPos::new(dest, self.board.depots[dest].len());
             if self.can_move(pos, dest) {
                 self.board.do_move(pos, dest);
                 self.history.push(ActionRecord { pos1: pos, pos2: dest, auto: false });
@@ -223,7 +223,8 @@ impl GameState {
             }
         }
 
-        let mut order = Suit::iter().collect::<Vec<_>>();
+        let mut ite = Suit::iter();
+        let mut order: [Suit; Suit::COUNT] = std::array::from_fn(|_| ite.next().unwrap());
         order.sort_by_key(|&s| foundation_ranks[s]);
         for s in order {
             let ans = Suit::iter().all(|other| {
@@ -248,9 +249,9 @@ impl GameState {
         for depot in it {
             if let Some(card) = self.board.depots[depot].last() {
                 if safe_sorts[card.suit] != card.rank { continue; }
-                let src = BoardPos { depot_index: depot, card_index: self.board.depots[depot].len() - 1 };
+                let src = BoardPos::new(depot, self.board.depots[depot].len() - 1);
                 for dest in DepotRole::Foundation.range() {
-                    let dest = BoardPos { depot_index: dest, card_index: self.board.depots[dest].len()};
+                    let dest = BoardPos::new(dest, self.board.depots[dest].len());
                     if self.can_move(src, dest) {
                         self.board.do_move(src, dest);
                         self.history.push(ActionRecord { pos1: src, pos2: dest, auto: true });

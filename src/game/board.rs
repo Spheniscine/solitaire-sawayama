@@ -133,6 +133,6 @@ impl Board {
     }
 
     pub fn top_pos(&self, depot: usize) -> BoardPos {
-        BoardPos { depot_index: depot, card_index: self.depots[depot].len() }
+        BoardPos::new(depot, self.depots[depot].len())
     }
 }

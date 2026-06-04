@@ -142,13 +142,13 @@ pub fn BoardComponent(
                         width: card_width,
                         hint,
                         onclick: move |_| {
-                            onclick.call(BoardPos { depot_index: depot, card_index: !0 })
+                            onclick.call(BoardPos::new(depot, !0))
                         },
                     }
                 }
 
                 for i in 0..board.depots[depot].len() {
-                    if board.selected == Some(BoardPos { depot_index: depot, card_index: i }) {
+                    if board.selected == Some(BoardPos::new(depot, i)) {
                         div {
                             position: "absolute",
                             top: rem(get_pos(depot, i).y),
@@ -168,10 +168,10 @@ pub fn BoardComponent(
                         number_hint: if !is_face_up(depot) {i + 1},
                         skin,
                         onclick: move |_| {
-                            onclick.call(BoardPos { depot_index: depot, card_index: i })
+                            onclick.call(BoardPos::new(depot, i))
                         },
                         ondoubleclick: move |_| {
-                            ondoubleclick.call(BoardPos { depot_index: depot, card_index: i })
+                            ondoubleclick.call(BoardPos::new(depot, i))
                         },
                     }
                 }
