@@ -15,6 +15,14 @@ pub fn Hero() -> Element {
         GameState::init()
     });
 
+    let confetti_counter = use_memo(move || {
+        state.read().num_wins
+    });
+    use_effect(move || {
+        let _ = confetti_counter.read();
+        document::eval("confetti();");
+    });
+
     let st = state.read();
     let clean = !st.is_busy(); // interactions should test this before write()-ing to state, to prevent slowdowns
 
@@ -40,27 +48,13 @@ pub fn Hero() -> Element {
             id: "hero",
             class: "select-none",
             overflow: "hidden",
-            // for (c, y) in test_cards {
-            //     CardComponent {
-            //         position: Vec2 { x: 2., y },
-            //         width: 11.,
-            //         card: c,
-            //         skin,
-            //     }
-            // }
-
-            // CardComponent {
-            //     position: Vec2 { x: 40., y: 40. },
-            //     width: 11.,
-            //     skin,
-            //     number_hint: 24,
-            // }
 
             BoardComponent { 
                 position: Vec2 { x: 0., y: 20. },
                 board: st.board.clone(),
                 skin: st.skin,
                 onclick: move |pos| if clean {state.write().onclick(pos);},
+                ondoubleclick: move |pos| if clean {state.write().ondoubleclick(pos);},
                 animation_key: st.animation_key,
                 is_won: st.is_won(),
             }

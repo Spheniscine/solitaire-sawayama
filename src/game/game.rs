@@ -47,7 +47,7 @@ impl GameState {
     pub fn init() -> Self {
         let deal = Self::new_deal(&mut rand::rng());
         let board = Board::from_deal(&deal);
-        Self {
+        let res = Self {
             board,
             deal,
             animation_key: 0,
@@ -57,7 +57,10 @@ impl GameState {
             allow_undo: true,
             auto_play: true,
             skin: Skin::default(),
-        }
+        };
+
+        // LocalStorage.save_game_state(&res);
+        res
     }
 
     pub fn can_stack(&self, back: Card, front: Card) -> bool {
@@ -165,6 +168,20 @@ impl GameState {
         } else {
             if self.can_select(pos) {
                 self.board.selected = Some(pos);
+            }
+        }
+    }
+
+    pub fn ondoubleclick(&mut self, pos: BoardPos) {
+        if self.is_busy() { return; }
+        if !self.can_select(pos) { return; } // needed, or illegal stacks can still be moved this way!
+        let it = DepotRole::Foundation.range().chain(DepotRole::FreeCell.range());
+        for dest in it {
+            let dest = BoardPos { depot_index: dest, card_index: self.board.depots[dest].len()};
+            if self.can_move(pos, dest) {
+                self.board.do_move(pos, dest);
+                self.history.push(ActionRecord { pos1: pos, pos2: dest, auto: false });
+                return;
             }
         }
     }
