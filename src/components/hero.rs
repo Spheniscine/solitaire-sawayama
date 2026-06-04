@@ -18,6 +18,7 @@ pub fn Hero() -> Element {
         div {
             id: "hero",
             class: "select-none",
+            overflow: "hidden",
             // for (c, y) in test_cards {
             //     CardComponent {
             //         position: Vec2 { x: 2., y },
