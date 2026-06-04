@@ -64,6 +64,10 @@ impl GameState {
         back.suit.color() != front.suit.color() && front.rank + 1 == back.rank
     }
 
+    pub fn can_sort(&self, back: Card, front: Card) -> bool {
+        back.suit == front.suit && back.rank + 1 == front.rank
+    }
+
     pub fn can_select(&self, pos: BoardPos) -> bool {
         let depot = pos.depot_index;
         let ord = pos.card_index;
@@ -81,6 +85,39 @@ impl GameState {
             DepotRole::Waste => { slice.len() <= 1 },
             DepotRole::Tableau => {
                 slice.windows(2).all(|w| self.can_stack(w[0], w[1]))
+            },
+        }
+    }
+
+    pub fn can_move(&self, pos1: BoardPos, pos2: BoardPos) -> bool {
+        if pos1.depot_index == pos2.depot_index { return false; }
+        let depot1 = &self.board.depots[pos1.depot_index];
+        let depot2 = &self.board.depots[pos2.depot_index];
+        let num_moved = depot1.len() - pos1.card_index;
+        if pos2.card_index != depot2.len() { return false; }
+
+        let card = depot1[pos1.card_index];
+        let Some(role) = DepotRole::role(pos2.depot_index) else { return false };
+        match role {
+            DepotRole::Foundation => {
+                num_moved == 1 && if let Some(&c) = depot2.last() {
+                    self.can_sort(c, card)
+                } else {
+                    1 == card.rank
+                }
+            },
+            DepotRole::FreeCell => {
+                self.board.depots[DepotRole::Stock.id(0)].is_empty() &&
+                depot2.is_empty() && num_moved == 1
+            },
+            DepotRole::Stock => false,
+            DepotRole::Waste => false,
+            DepotRole::Tableau => {
+                if let Some(&c) = depot2.last() {
+                    self.can_stack(c, card)
+                } else {
+                    true
+                }
             },
         }
     }
@@ -121,10 +158,10 @@ impl GameState {
                 return;
             }
 
-            // let dest = BoardPos { depot_index: pos.depot_index, card_index: pos.card_index.wrapping_add(1) };
-            // if !self.can_move(src, dest) { return; }
-            // self.board.do_move(src, dest);
-            // self.history.push(ActionRecord { pos1: src, pos2: dest, auto: false });
+            let dest = BoardPos { depot_index: pos.depot_index, card_index: pos.card_index.wrapping_add(1) };
+            if !self.can_move(src, dest) { return; }
+            self.board.do_move(src, dest);
+            self.history.push(ActionRecord { pos1: src, pos2: dest, auto: false });
         } else {
             if self.can_select(pos) {
                 self.board.selected = Some(pos);
