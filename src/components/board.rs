@@ -17,29 +17,28 @@ pub fn BoardComponent(
 ) -> Element {
     let card_width = 11f32;
     let card_height = card_width * CARD_HEIGHT_RATIO;
-    let spacer_x = 1.1f32;
+    let spacer_x = 1f32;
     let spacer_y = 1.5f32;
 
-    let center_x = |n: usize, i: usize| 
-        50. - (card_width * n as f32 + spacer_x * (n-1) as f32) / 2. + (card_width + spacer_x) * i as f32;
+    let pos_x = |i: usize| {
+        2. + (card_width + spacer_x) * i as f32 + if i == DepotRole::Tableau.number_of() {spacer_x} else {0.}
+    };
 
     let start_y = 2f32;
     let pos_y = |i: usize| start_y + (card_height + spacer_y) * i as f32;
     let column_card_offset = Vec2::new(0., 6.);
 
-    let num_grid_columns = DepotRole::Tableau.number_of() + 1;
-
     let get_pos = |depot: usize, ord: usize| {
         let (role, index) = DepotRole::role_and_subindex(depot).unwrap();
         match role {
             DepotRole::Foundation => 
-                Vec2::new(center_x(num_grid_columns, index), pos_y(0)),
+                Vec2::new(pos_x(index), pos_y(0)),
             DepotRole::FreeCell | DepotRole::Stock => 
-                Vec2::new(center_x(num_grid_columns, DepotRole::Tableau.number_of()-1), pos_y(0)),
+                Vec2::new(pos_x(DepotRole::Tableau.number_of()-1), pos_y(0)),
             DepotRole::Waste => 
-                Vec2::new(center_x(num_grid_columns, DepotRole::Tableau.number_of()), pos_y(0)) + column_card_offset * ord as f32,
+                Vec2::new(pos_x(DepotRole::Tableau.number_of()), pos_y(0)) + column_card_offset * ord as f32,
             DepotRole::Tableau => 
-                Vec2::new(center_x(num_grid_columns, index), pos_y(1)) + column_card_offset * ord as f32,
+                Vec2::new(pos_x(index), pos_y(1)) + column_card_offset * ord as f32,
         }
     };
 
@@ -82,7 +81,7 @@ pub fn BoardComponent(
         card_height + column_card_offset.y * d as f32
     } else {0.};
 
-    let waste_background_x = center_x(num_grid_columns, DepotRole::Tableau.number_of()) - spacer_x * 0.8;
+    let waste_background_x = pos_x(DepotRole::Tableau.number_of()) - spacer_x - 0.4;
 
     rsx! {
         div {
@@ -94,9 +93,10 @@ pub fn BoardComponent(
                 position: "absolute",
                 top: rem(1.),
                 left: rem(waste_background_x),
-                width: rem(100. - waste_background_x),
+                width: rem(0.5),
+                border_radius: rem(0.25),
                 height: rem(160.),
-                background_color: "#006622",
+                background_color: "#aaa",
             }
 
             for depot in 0..NUM_DEPOTS {
