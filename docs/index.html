@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sawayama Solitaire</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+  <link rel="preload" as="script" href="/solitaire-sawayama/assets/solitaire-sawayama-7dc3fe6648aefd34.js" crossorigin><link rel="preload" as="fetch" type="application/wasm" href="/solitaire-sawayama/assets/solitaire-sawayama_bg-a564a24d86f3fd66.wasm" crossorigin></head>
+  <body>
+    <div id="main"></div>
+  <script>
+            // We can't use a module script here because we need to start the script immediately when streaming
+            import("/solitaire-sawayama/assets/solitaire-sawayama-7dc3fe6648aefd34.js").then(
+                ({ default: init }) => {
+                init("/solitaire-sawayama/assets/solitaire-sawayama_bg-a564a24d86f3fd66.wasm").then((wasm) => {
+                    if (wasm.__wbindgen_start == undefined) {
+                    wasm.main();
+                    }
+                });
+                }
+            );
+            </script>
+            
+            </body>
+</html>
