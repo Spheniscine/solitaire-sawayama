@@ -1,17 +1,18 @@
 use dioxus::prelude::*;
 use glam::Vec2;
 
-use crate::{components::{BoardComponent, CardComponent}, game::{Board, Card, Skin, Suit}};
+use crate::{components::{BoardComponent, CardComponent}, game::{Board, Card, DepotRole, Skin, Suit}};
 
 #[component]
 pub fn Hero() -> Element {
 
     let test_cards = (1..=24).map(|i| {
-        (Card { rank: i, suit: Suit::Spades }, 22. + (i-1) as f32 * 6.)
+        Card { rank: i, suit: Suit::Spades }
     });
     let skin = Skin::default();
 
-    let board = Board::empty();
+    let mut board = Board::empty();
+    board.depots[DepotRole::Waste.id(0)] = test_cards.collect();
 
     rsx! {
         div {

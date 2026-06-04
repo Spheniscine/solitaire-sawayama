@@ -82,11 +82,22 @@ pub fn BoardComponent(
         card_height + column_card_offset.y * d as f32
     } else {0.};
 
+    let waste_background_x = center_x(num_grid_columns, DepotRole::Tableau.number_of()) - spacer_x * 0.8;
+
     rsx! {
         div {
             position: "absolute",
             top: rem(position.y),
             left: rem(position.x),
+
+            div {
+                position: "absolute",
+                top: rem(1.),
+                left: rem(waste_background_x),
+                width: rem(100. - waste_background_x),
+                height: rem(160.),
+                background_color: "#006622",
+            }
 
             for depot in 0..NUM_DEPOTS {
                 if let Some(hint) = get_hint(depot) {
