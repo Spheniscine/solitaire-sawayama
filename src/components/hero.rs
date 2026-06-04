@@ -1,18 +1,26 @@
 use dioxus::prelude::*;
 use glam::Vec2;
 
-use crate::{components::{BoardComponent, CardComponent}, game::{Board, Card, DepotRole, Skin, Suit}};
+use crate::{components::{BoardComponent, CardComponent}, game::{Board, Card, DepotRole, GameState, Skin, Suit}};
 
 #[component]
 pub fn Hero() -> Element {
+    let mut state = use_signal(|| {
+        // if let Some(mut state) = LocalStorage.load_game_state() {
+        //     state.board.selected = None;
+        //     state.screen_state = ScreenState::Game;
+        //     return state;
+        // }
+        GameState::init()
+    });
+
+    let st = state.read();
 
     let test_cards = (1..=24).map(|i| {
         Card { rank: i, suit: Suit::Spades }
     });
     let skin = Skin::default();
 
-    let mut board = Board::empty();
-    board.depots[DepotRole::Waste.id(0)] = test_cards.collect();
 
     rsx! {
         div {
@@ -37,7 +45,7 @@ pub fn Hero() -> Element {
 
             BoardComponent { 
                 position: Vec2 { x: 0., y: 20. },
-                board,
+                board: st.board.clone(),
                 skin,
             }
         }

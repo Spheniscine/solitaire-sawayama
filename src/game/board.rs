@@ -5,7 +5,7 @@ use serde_tuple::{Deserialize_tuple, Serialize_tuple};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::game::{Card, NUM_SUITS};
+use crate::game::{Card, DECK_SIZE, NUM_SUITS};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq, EnumIter)]
 pub enum DepotRole {
@@ -97,5 +97,20 @@ impl Board {
             selected: None,
             animation_acts: vec![],
         }
+    }
+
+    pub fn from_deal(mut deal: &[Card]) -> Self {
+        use DepotRole::*;
+        assert_eq!(deal.len(), DECK_SIZE);
+
+        let mut res = Self::empty();
+        for i in 0..Tableau.number_of() {
+            for j in i..Tableau.number_of() {
+                res.depots[Tableau.id(j)].push(*deal.split_off_first().unwrap());
+            }
+        }
+        res.depots[Stock.id(0)].extend_from_slice(deal);
+
+        res
     }
 }
