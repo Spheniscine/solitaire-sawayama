@@ -5,7 +5,7 @@ use rand::{Rng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 use strum::{IntoEnumIterator, VariantArray};
 
-use crate::game::{Board, BoardPos, Card, DECK_SIZE, DepotRole, NUM_RANKS, RANKS, Skin, Suit};
+use crate::{components::LocalStorage, game::{Board, BoardPos, Card, DECK_SIZE, DepotRole, NUM_RANKS, RANKS, Skin, Suit}};
 
 pub const ANIMATION_DURATION: Duration = Duration::from_millis(200);
 pub type AnimationKey = u16;
@@ -46,11 +46,9 @@ impl GameState {
     }
 
     pub fn init() -> Self {
-        let deal = Self::new_deal(&mut rand::rng());
-        let board = Board::from_deal(&deal);
-        let res = Self {
-            board,
-            deal,
+        let mut res = Self {
+            board: Board::empty(),
+            deal: vec![],
             animation_key: 0,
             history: vec![],
             already_won: false,
@@ -60,7 +58,7 @@ impl GameState {
             skin: Skin::default(),
         };
 
-        // LocalStorage.save_game_state(&res);
+        res.new_game();
         res
     }
 
@@ -138,6 +136,36 @@ impl GameState {
         DepotRole::Foundation.range().all(|i| {
             self.board.depots[i].len() == NUM_RANKS
         })
+    }
+
+    pub fn undo_possible(&self) -> bool {
+        self.allow_undo && !self.history.is_empty()
+    }
+
+    pub fn undo(&mut self) {
+        if self.is_busy() || !self.undo_possible() { return; }
+        while let Some(rec) = self.history.pop() {
+            self.board.do_move(rec.pos2, rec.pos1);
+            self.board.advance_actions(); // no animation, as repeated card moves on same card causes problems
+            if !rec.auto { break; }
+        }
+        LocalStorage.save_game_state(&self);
+    }
+
+    pub fn restart(&mut self) {
+        if self.history.is_empty() || !self.undo_possible() { return; }
+        self.board = Board::from_deal(&self.deal);
+        self.history.clear();
+        LocalStorage.save_game_state(&self);
+    }
+
+    pub fn new_game(&mut self) {
+        let deal = Self::new_deal(&mut rand::rng());
+        self.board = Board::from_deal(&deal);
+        self.deal = deal;
+        self.history.clear();
+        self.already_won = false;
+        LocalStorage.save_game_state(&self);
     }
 
     pub fn onclick(&mut self, pos: BoardPos) {
@@ -248,7 +276,7 @@ impl GameState {
             self.check_auto_moves();
         }
 
-        // if !self.is_busy() { LocalStorage.save_game_state(&self); }
+        if !self.is_busy() { LocalStorage.save_game_state(&self); }
     }
 
     
