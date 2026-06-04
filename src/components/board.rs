@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use glam::Vec2;
 
-use crate::{components::{CARD_HEIGHT_RATIO, CardComponent, CardFrame, SkinTrait, rem}, game::{AnimationKey, Board, BoardPos, Card, DepotRole, NUM_DEPOTS, Skin, Suit}};
+use crate::{components::{CARD_BORDER_RADIUS_RATIO, CARD_HEIGHT_RATIO, CardComponent, CardFrame, Movement, SkinTrait, rem}, game::{AnimationAct, AnimationKey, Board, BoardPos, Card, DepotRole, NUM_DEPOTS, Skin, Suit}};
 
 #[component]
 pub fn BoardComponent(
@@ -81,6 +81,40 @@ pub fn BoardComponent(
         card_height + column_card_offset.y * d as f32
     } else {0.};
 
+    let anims = board.animation_acts.iter().enumerate().map(|(i, act)| {
+        match act {
+            AnimationAct::Move(cards, pos1, pos2) => {
+                let mut pos1 = *pos1;
+                let mut pos2 = *pos2;
+                let nodes = cards.iter().map(move |card| {
+                    let p1 = get_pos(pos1.depot_index, pos1.card_index);
+                    let p2 = get_pos(pos2.depot_index, pos2.card_index);
+                    let res = rsx! {
+                        Movement {
+                            src_translate_vec: p1 - p2,
+                            CardComponent {
+                                position: p2,
+                                width: card_width,
+                                card: *card,
+                                skin,
+                            }
+                        }
+                    };
+                    pos1.card_index += 1;
+                    pos2.card_index += 1;
+                    res
+                });
+
+                rsx! {
+                    Fragment {
+                        key: "{animation_key},{i}", // needed to force remounts, so animations don't get "stale" and refuse to replay
+                        {nodes}
+                    }
+                }
+            },
+        }
+    });
+
     let waste_background_x = pos_x(DepotRole::Tableau.number_of()) - spacer_x - 0.4;
 
     rsx! {
@@ -112,6 +146,19 @@ pub fn BoardComponent(
                 }
 
                 for i in 0..board.depots[depot].len() {
+                    if board.selected == Some(BoardPos { depot_index: depot, card_index: i }) {
+                        div {
+                            position: "absolute",
+                            top: rem(get_pos(depot, i).y),
+                            left: rem(get_pos(depot, i).x),
+                            width: rem(card_width),
+                            height: rem(selected_height),
+                            background_color: "#ff0",
+                            border_radius: rem(card_width * CARD_BORDER_RADIUS_RATIO),
+                            class: "selected-halo",
+                        }
+                    }
+
                     CardComponent { 
                         position: get_pos(depot, i),
                         width: card_width,
@@ -127,6 +174,8 @@ pub fn BoardComponent(
                     }
                 }
             }
+
+            {anims}
         }
     }
 }

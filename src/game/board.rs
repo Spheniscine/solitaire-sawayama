@@ -113,4 +113,26 @@ impl Board {
 
         res
     }
+
+    pub fn do_move(&mut self, pos1: BoardPos, pos2: BoardPos) {
+        self.selected = None;
+        let cards = self.depots[pos1.depot_index].drain(pos1.card_index ..).collect();
+        self.animation_acts.push(
+            AnimationAct::Move(cards, pos1, pos2)
+        );
+    }
+
+    pub fn advance_actions(&mut self) {
+        for act in self.animation_acts.drain(..) {
+            match act {
+                AnimationAct::Move(cards, _pos1, pos2) => {
+                    self.depots[pos2.depot_index].extend(cards);
+                },
+            }
+        }
+    }
+
+    pub fn top_pos(&self, depot: usize) -> BoardPos {
+        BoardPos { depot_index: depot, card_index: self.depots[depot].len() }
+    }
 }

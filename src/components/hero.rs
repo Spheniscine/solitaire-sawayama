@@ -1,7 +1,8 @@
+use async_std::stream::StreamExt;
 use dioxus::prelude::*;
 use glam::Vec2;
 
-use crate::{components::{BoardComponent, CardComponent}, game::{Board, Card, DepotRole, GameState, Skin, Suit}};
+use crate::{components::{BoardComponent, CardComponent}, game::{ANIMATION_DURATION, AnimationKey, Board, Card, DepotRole, GameState, Skin, Suit}};
 
 #[component]
 pub fn Hero() -> Element {
@@ -15,11 +16,23 @@ pub fn Hero() -> Element {
     });
 
     let st = state.read();
+    let clean = !st.is_busy(); // interactions should test this before write()-ing to state, to prevent slowdowns
 
-    let test_cards = (1..=24).map(|i| {
-        Card { rank: i, suit: Suit::Spades }
+    let animate_timer = use_coroutine(move |mut rx: UnboundedReceiver<AnimationKey>| async move {
+        while let Some(key) = rx.next().await {
+            async_std::task::sleep(ANIMATION_DURATION).await;
+            state.write().advance_animations(key);
+        }
     });
-    let skin = Skin::default();
+
+    if st.is_acting() {
+        animate_timer.send(st.animation_key);
+    }
+
+    // let test_cards = (1..=24).map(|i| {
+    //     Card { rank: i, suit: Suit::Spades }
+    // });
+    // let skin = Skin::default();
 
 
     rsx! {
@@ -46,7 +59,8 @@ pub fn Hero() -> Element {
             BoardComponent { 
                 position: Vec2 { x: 0., y: 20. },
                 board: st.board.clone(),
-                skin,
+                skin: st.skin,
+                onclick: move |pos| if clean {state.write().onclick(pos);},
             }
         }
     }
