@@ -25,11 +25,11 @@ pub use local_storage::LocalStorage;
 mod emoji;
 pub use emoji::*;
 
-// mod help;
-// pub use help::*;
+mod help;
+pub use help::*;
 
 // // mod help_consts;
 // // pub use help_consts::*;
 
-// mod videos;
-// pub use videos::*;
+mod videos;
+pub use videos::*;
