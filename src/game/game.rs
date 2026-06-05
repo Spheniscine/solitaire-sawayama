@@ -5,7 +5,7 @@ use rand::{Rng, seq::SliceRandom};
 use serde::{Deserialize, Serialize};
 use strum::{EnumCount, IntoEnumIterator};
 
-use crate::{components::LocalStorage, game::{Board, BoardPos, Card, DECK_SIZE, DepotRole, NUM_RANKS, RANKS, Skin, Suit}};
+use crate::{components::LocalStorage, game::{Board, BoardPos, Card, DECK_SIZE, DepotRole, NUM_RANKS, RANKS, SettingsState, Skin, Suit}};
 
 pub const ANIMATION_DURATION: Duration = Duration::from_millis(200);
 pub type AnimationKey = u16;
@@ -13,6 +13,12 @@ pub type AnimationKey = u16;
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct ActionRecord {
     pos1: BoardPos, pos2: BoardPos, auto: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub enum ScreenState {
+    #[default] Game, 
+    Settings, Help,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -25,7 +31,8 @@ pub struct GameState {
     pub already_won: bool,
     pub num_wins: i32,
 
-    // pub screen_state: ScreenState,
+    #[serde(default)]
+    pub screen_state: ScreenState,
 
     pub allow_undo: bool,
     pub auto_play: bool,
@@ -53,6 +60,7 @@ impl GameState {
             history: vec![],
             already_won: false,
             num_wins: 0,
+            screen_state: ScreenState::Game,
             allow_undo: true,
             auto_play: true,
             skin: Skin::default(),
@@ -283,5 +291,18 @@ impl GameState {
         if !self.is_busy() { LocalStorage.save_game_state(&self); }
     }
 
-    
+    pub fn new_settings_state(&self) -> SettingsState {
+        SettingsState {
+            allow_undo: self.allow_undo,
+            auto_play: self.auto_play,
+            skin: self.skin,
+        }
+    }
+
+    pub fn apply_settings(&mut self, settings: &SettingsState){
+        self.allow_undo = settings.allow_undo;
+        self.auto_play = settings.auto_play;
+        self.skin = settings.skin;
+        LocalStorage.save_game_state(&self);
+    }
 }
