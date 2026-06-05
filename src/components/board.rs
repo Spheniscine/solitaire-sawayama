@@ -125,9 +125,10 @@ pub fn BoardComponent(
             top: rem(position.y),
             left: rem(position.x),
 
+            // Waste Divider
             div {
                 position: "absolute",
-                top: rem(1.),
+                top: rem(2.),
                 left: rem(waste_background_x),
                 width: rem(0.5),
                 border_radius: rem(0.25),

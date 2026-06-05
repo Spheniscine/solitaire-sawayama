@@ -215,7 +215,9 @@ impl GameState {
         }
     }
 
+    /// returns an EnumMap where each suit gives the rank that is safe to sort
     pub fn get_safe_sorts(&self) -> EnumMap<Suit, u8> {
+        // first get the ranks of the cards that are already sorted
         let mut foundation_ranks = EnumMap::<Suit, u8>::default();
         for i in DepotRole::Foundation.range() {
             if let Some(card) = self.board.depots[i].last() {
@@ -223,12 +225,14 @@ impl GameState {
             }
         }
 
+        // then going from the suit with the lowest ranks sorted to highest, check if the cards that may be placed on
+        // the candidate are either already sorted, or would be safe to sort once uncovered
         let mut ite = Suit::iter();
         let mut order: [Suit; Suit::COUNT] = std::array::from_fn(|_| ite.next().unwrap());
         order.sort_by_key(|&s| foundation_ranks[s]);
         for s in order {
-            let ans = Suit::iter().all(|other| {
-                other.color() == s.color() || foundation_ranks[other] >= foundation_ranks[s]
+            let ans = foundation_ranks.iter().all(|(other, &rank)| {
+                other.color() == s.color() || rank >= foundation_ranks[s]
             });
             if ans { foundation_ranks[s] += 1; }
         }
@@ -252,11 +256,10 @@ impl GameState {
                 let src = BoardPos::new(depot, self.board.depots[depot].len() - 1);
                 for dest in DepotRole::Foundation.range() {
                     let dest = BoardPos::new(dest, self.board.depots[dest].len());
-                    if self.can_move(src, dest) {
-                        self.board.do_move(src, dest);
-                        self.history.push(ActionRecord { pos1: src, pos2: dest, auto: true });
-                        return;
-                    }
+                    if !self.can_move(src, dest) { continue; }
+                    self.board.do_move(src, dest);
+                    self.history.push(ActionRecord { pos1: src, pos2: dest, auto: true });
+                    return;
                 }
             }
         }
