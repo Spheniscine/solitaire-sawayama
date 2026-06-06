@@ -34,7 +34,7 @@ if [ ! -d "$old_folder" ]; then
         
         # Create corresponding directory structure in output
         output_file="$output_dir/$rel_path"
-        mkdir -p "$(dirname "$output_file")"
+        # mkdir -p "$(dirname "$output_file")"
         
         # Compress the file
         echo "Compressing: $rel_path"
