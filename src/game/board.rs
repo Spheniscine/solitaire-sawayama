@@ -2,7 +2,7 @@ use std::ops::Range;
 
 use serde::{Deserialize, Serialize};
 use serde_tuple::{Deserialize_tuple, Serialize_tuple};
-use strum::IntoEnumIterator;
+use strum::{IntoEnumIterator, VariantArray};
 use strum_macros::{EnumIter, VariantArray};
 
 use crate::game::{Card, DECK_SIZE, NUM_SUITS};
@@ -16,7 +16,15 @@ pub enum DepotRole {
     Tableau,
 }
 
-pub const NUM_DEPOTS: usize = DepotRole::Tableau.offset() + DepotRole::Tableau.number_of();
+pub const NUM_DEPOTS: usize = {
+    let mut sum = 0;
+    let mut index = 0;
+    while index < DepotRole::VARIANTS.len() {
+        sum += DepotRole::VARIANTS[index].number_of();
+        index += 1;
+    }
+    sum
+};
 
 impl DepotRole {
     pub const fn number_of(&self) -> usize {
