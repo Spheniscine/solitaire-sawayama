@@ -3,11 +3,11 @@ use std::ops::Range;
 use serde::{Deserialize, Serialize};
 use serde_tuple::{Deserialize_tuple, Serialize_tuple};
 use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use strum_macros::{EnumIter, VariantArray};
 
 use crate::game::{Card, DECK_SIZE, NUM_SUITS};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq, EnumIter)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq, EnumIter, VariantArray)]
 pub enum DepotRole {
     Foundation,
     FreeCell,
@@ -15,6 +15,8 @@ pub enum DepotRole {
     Waste,
     Tableau,
 }
+
+pub const NUM_DEPOTS: usize = DepotRole::Tableau.offset() + DepotRole::Tableau.number_of();
 
 impl DepotRole {
     pub const fn number_of(&self) -> usize {
@@ -26,19 +28,28 @@ impl DepotRole {
             DepotRole::Tableau => 7,
         }
     }
-
-    pub const fn offset(&self) -> usize {
-        use DepotRole::*;
-        match self {
-            Foundation => 0,
-            FreeCell => Foundation.number_of(),
-            Stock => Foundation.number_of() + FreeCell.number_of(),
-            Waste => Foundation.number_of() + FreeCell.number_of() + Stock.number_of(),
-            Tableau => Foundation.number_of() + FreeCell.number_of() + Stock.number_of() + Waste.number_of(),
-        }
+    
+    const fn previous(self) -> Option<Self> {
+        Some(match self {
+            DepotRole::Foundation => return None,
+            DepotRole::FreeCell => DepotRole::Foundation,
+            DepotRole::Stock => DepotRole::FreeCell,
+            DepotRole::Waste => DepotRole::Stock,
+            DepotRole::Tableau => DepotRole::Waste,
+        })
     }
 
-    pub const fn range(&self) -> Range<usize> {
+    pub const fn offset(self) -> usize {
+        let mut sum = 0;
+        let mut depot = self.previous();
+        while let Some(d) = depot {
+            sum += d.number_of();
+            depot = d.previous();
+        }
+        sum
+    }
+
+    pub const fn range(self) -> Range<usize> {
         self.offset() .. self.offset() + self.number_of()
     }
 
@@ -55,16 +66,14 @@ impl DepotRole {
         Self::role_and_subindex(i).map(|x| x.0)
     }
 
-    pub fn id(&self, i: usize) -> usize {
+    pub fn id(self, i: usize) -> usize {
         self.offset() + i
     }
 
-    pub fn is_face_up(&self) -> bool {
-        *self != DepotRole::Stock
+    pub fn is_face_up(self) -> bool {
+        self != DepotRole::Stock
     }
 }
-
-pub const NUM_DEPOTS: usize = DepotRole::Tableau.offset() + DepotRole::Tableau.number_of();
 
 #[derive(Copy, Clone, Serialize_tuple, Deserialize_tuple, Debug, PartialEq, Eq)]
 pub struct BoardPos {
