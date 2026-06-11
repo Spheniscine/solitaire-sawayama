@@ -8,6 +8,7 @@ use strum_macros::{EnumIter, VariantArray};
 use crate::game::{Card, DECK_SIZE, NUM_SUITS};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq, Eq, EnumIter, VariantArray)]
+#[repr(u8)]
 pub enum DepotRole {
     Foundation,
     FreeCell,
@@ -36,25 +37,15 @@ impl DepotRole {
             DepotRole::Tableau => 7,
         }
     }
-    
-    const fn previous(self) -> Option<Self> {
-        Some(match self {
-            DepotRole::Foundation => return None,
-            DepotRole::FreeCell => DepotRole::Foundation,
-            DepotRole::Stock => DepotRole::FreeCell,
-            DepotRole::Waste => DepotRole::Stock,
-            DepotRole::Tableau => DepotRole::Waste,
-        })
-    }
 
     pub const fn offset(self) -> usize {
         let mut sum = 0;
-        let mut depot = self.previous();
-        while let Some(d) = depot {
-            sum += d.number_of();
-            depot = d.previous();
+        let mut index = 0;
+        loop {
+            if index == self as usize { return sum; }
+            sum += DepotRole::VARIANTS[index].number_of();
+            index += 1;
         }
-        sum
     }
 
     pub const fn range(self) -> Range<usize> {
