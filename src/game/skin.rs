@@ -82,6 +82,9 @@ const COLOR_RED: [&str; 2] = ["#f00", "#ff8888"];
 const COLOR_BLUE: [&str; 2] = ["#00d", "#aaaaff"];
 const COLOR_BLACK: [&str; 2] = ["#000", "#fff"];
 
+const COLOR_LIGHT_RED: [&str; 2] = ["#f55", "#ffa5a5"];
+const COLOR_GREY: [&str; 2] = ["#555", "#ccc"];
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Debug, EnumIter, strum_macros::Display, Default, FromRepr)]
 #[repr(u8)]
 pub enum ColorMode {
@@ -94,6 +97,8 @@ pub enum ColorSkin {
     #[default]
     #[strum(to_string = "Two colors")]
     TwoColor,
+    #[strum(to_string = "Four colors (subtle)")]
+    FourColorSubtle,
     #[strum(to_string = "Four colors")]
     FourColor,
 }
@@ -111,6 +116,14 @@ impl ColorSkin {
                     Suit::Spades => COLOR_BLUE,
                 }
             },
+            ColorSkin::FourColorSubtle => {
+                match suit {
+                    Suit::Clubs => COLOR_GREY,
+                    Suit::Diamonds => COLOR_LIGHT_RED,
+                    Suit::Hearts => COLOR_RED,
+                    Suit::Spades => COLOR_BLACK,
+                }
+            }
             ColorSkin::TwoColor => {
                 match suit {
                     Suit::Clubs | Suit::Spades => COLOR_BLACK,

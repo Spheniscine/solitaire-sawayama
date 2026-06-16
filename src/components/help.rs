@@ -52,7 +52,7 @@ pub fn Help(game_state: Signal<GameState>) -> Element {
                     margin_top: "0",
                     "The ",Emph {"tableau"}," consists of 7 columns. Cards in the tableau are stacked by descending ranks of 
                     alternating color (",
-                    {if skin.colors == ColorSkin::TwoColor {"red/black"} else {"warm/cool"}}
+                    {if skin.colors != ColorSkin::FourColor {"red/black"} else {"warm/cool"}}
                     ,"). Such stacks of any size can be moved as a unit. (e.g. ",{stack_example()}")"
                 }
 
